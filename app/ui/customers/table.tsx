@@ -3,11 +3,11 @@ import { lusitana } from '@/app/ui/fonts';
 import Search from '@/app/ui/search';
 import {
   CustomersTableType,
-  FormattedCustomersTable,
 } from '@/app/lib/definitions';
-import { fetchFilteredCustomers } from '@/app/lib/data';
-
-export default async function CustomersTable({customers}: CustomersTableType) {
+interface CustomersTableProps {
+  customers: CustomersTableType[]; // Make sure this prop is defined
+}
+const CustomersTable: React.FC<CustomersTableProps> = ({ customers }) => {
    console.log("customers", customers)
   return (
     <div className="w-full">
@@ -119,3 +119,5 @@ export default async function CustomersTable({customers}: CustomersTableType) {
     </div>
   );
 }
+
+export default CustomersTable
