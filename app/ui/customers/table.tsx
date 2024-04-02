@@ -5,12 +5,10 @@ import {
   CustomersTableType,
   FormattedCustomersTable,
 } from '@/app/lib/definitions';
+import { fetchFilteredCustomers } from '@/app/lib/data';
 
-export default async function CustomersTable({
-  customers,
-}: {
-  customers: FormattedCustomersTable[];
-}) {
+export default async function CustomersTable({customers}: CustomersTableType) {
+   console.log("customers", customers)
   return (
     <div className="w-full">
       <h1 className={`${lusitana.className} mb-8 text-xl md:text-2xl`}>
