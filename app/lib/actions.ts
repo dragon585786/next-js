@@ -11,6 +11,8 @@ export type State = {
       customerId?: string[];
       amount?: string[];
       status?: string[];
+      name?: string[];
+      email?: string[];
     };
     message?: string | null;
   };
@@ -27,7 +29,18 @@ const FormSchema = z.object({
     }),
     date: z.string(),
   });
-   
+
+  const FormSchemaCustomer = z.object({
+    name: z.string({
+      invalid_type_error: 'Please enter a customer name.',
+    }),
+    email: z.string({
+      invalid_type_error: 'Please enter email address.',
+    }),
+    id: z.string(),
+    image_url: z.string(),
+  });
+  const CreateCustomer = FormSchemaCustomer.omit({ id: true,image_url:true });
   const CreateInvoice = FormSchema.omit({ id: true, date: true });
   const UpdateInvoice = FormSchema.omit({ id: true, date: true });
   export async function createInvoice(prevState: State, formData: FormData) {
@@ -67,6 +80,43 @@ const FormSchema = z.object({
     // Revalidate the cache for the invoices page and redirect the user.
     revalidatePath('/dashboard/invoices');
     redirect('/dashboard/invoices');
+  }
+  export async function createCustomer(prevState: State, formData: FormData) {
+    // Validate form using Zod
+    const validatedFields = CreateCustomer.safeParse({
+      name: formData.get('customer_name'),
+      email: formData.get('customer_email'),
+    });
+   console.log("validatedFields",validatedFields)
+    // If form validation fails, return errors early. Otherwise, continue.
+    if (!validatedFields.success) {
+      return {
+        errors: validatedFields.error.flatten().fieldErrors,
+        message: 'Missing Fields. Failed to Create customer.',
+      };
+    }
+   
+    // Prepare data for insertion into the database
+    const { name, email } = validatedFields.data;
+    console.log("name",name,"email",email)
+    // Insert data into the database
+    try {
+      await sql`
+        INSERT INTO customers (name, email)
+        VALUES (${name}, ${email})
+      `;
+    } catch (error) {
+      // If a database error occurs, return a more specific error.
+    console.log("error===>",error)
+
+      return {
+        message: 'Database Error: Failed to Create Customer.',
+      };
+    }
+   
+    // Revalidate the cache for the invoices page and redirect the user.
+    revalidatePath('/dashboard/customers');
+    redirect('/dashboard/customers');
   }
   export async function updateInvoice(
     id: string,
@@ -115,6 +165,22 @@ const FormSchema = z.object({
     } catch (error) {
         return {
             message: 'Database Error: Failed to Delete Invoice.',
+          };
+    }
+  }
+
+  export async function deleteCustomer(id: string) {
+    // throw new Error('Failed to Delete Invoice');
+    try {
+        await sql`
+        DELETE FROM customers
+        WHERE id = ${id}
+      `;
+      revalidatePath('/dashboard/customers');
+      return { message: 'Deleted Customer.' };
+    } catch (error) {
+        return {
+            message: 'Database Error: Failed to Delete Customer.',
           };
     }
   }
